@@ -1,64 +1,49 @@
 //Imports de los módulos
 //fs y path
 
-const fs = require('fs');
+const fs = require('fs/promises');
 const path = require('path');
+
+const pathUser = path.resolve("users.json");
 
 const getUsers = async() => {
     //Leer el archivo
-    const users = '';
-    fs.readFile('users.json', {encoding: 'utf8'}, (err, data) => {
-        if(!err){
-            users = data;
-        }else {
-            console.log(err);
-        }
-    });
-
-    return users;
-    //Regresar el arreglo de usuarios como objeto literal Javascript (sin notación JSON)
+    try {
+        const users = await fs.readFile(pathUser, {encoding: "utf-8"});
+        return JSON.parse(users);
+    } catch (error) {
+        console.log(error);
+    }
 };
 
 const addUser = async (userObj) => {
-    //leer el archivo
-    let users = [];
-    fs.readFile('users.json', {encoding: 'utf8'}, (err, data) => {
-        if(!err){
-            //convertir el contenido en formato JSON en un objeto JS
-            users = JSON.parse(data);
-            //agregar el usuario en el arreglo
-            users = [...users, userObj];
-
-            //sobreescribir el arreglo en el archivo
-            fs.writeFile('users.json',JSON.stringify(users), (err) => {
-                if(!err) {
-                    //si el proceso se realizó correctamente tendrás que regresar el objeto de usuario
-                    //que acabas de agregar en el arreglo
-                    return userObj;
-                } else {
-                    console.log(err);
-                }
-            });
-        }else {
-            console.log(err);
-        }
-    });    
+    try {
+        //leer el archivo
+        //convertir el contenido en formato JSON
+        let users = await getUsers();
+    
+        //agreagar el usuario en el arreglo
+        users = [...users, userObj];
+        //sobreescribir el arreglo  en el archivo
+        await fs.writeFile(pathUser, JSON.stringify(users));
+        //si el proceso se realizo correctamente tendras que regresar el objeto de usuario
+        //que acabas de agregar en el archivo
+        return userObj;
+    } catch (error) {
+        console.log(error);
+    }
+    
 };
 
 const clearUsers = async () => {
-    //Vaciar el arreglo y sobreescribir el archivo
-    fs.writeFile('users.json', '[]', (err) => {
-        if(!err) {
-            return true;
-        } else {
-            console.log(err);
-        }
-    });
-
-    //Si el proceso se realizó correctamente tendrás que regresar true
+    try {
+        //Vaciar el arreglo y sobreescribir el archivo
+        await fs.writeFile( pathUser, JSON.stringify([]) );
+        return true
+    } catch (error) {
+        console.log(error);
+    }
 }
-
-
 
 module.exports = {
     getUsers,
